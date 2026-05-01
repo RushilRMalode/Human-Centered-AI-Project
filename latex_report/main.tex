@@ -36,7 +36,7 @@
 \maketitle
 
 \begin{abstract}
-\citet{agarwal2024system2} propose a two-timescale Hawkes process to disentangle impulsive (System-1) from deliberate (System-2) user behaviour purely from arrival times, separating the two components via the decay-rate inequality $\beta^1 > \beta^2$. Their own Theorem~1 makes the condition strict: when the decay rates collide, the model is provably non-identifiable. We extend their setup to a \emph{marked} dual-kernel Hawkes in which each arrival carries a mixed-type engagement vector (session event count, dwell time, like indicator), and prove that the marked model is identifiable whenever \emph{either} the decay rates differ \emph{or} the mark distributions differ --- a strictly weaker sufficient condition. Consistency of the MLE follows by a standard M-estimation argument. We implement the model with branching-EM and run four synthetic experiments: (i) every parameter's MLE error decays as $1/\sqrt{N}$; (ii) the flagship $\beta$-sweep shows the marked model's error stays flat as $\beta^2 \to \beta^1$ while the unmarked model's error climbs to $0.31$ (a $5.2\times$ gap at $\beta^2 = \beta^1$); (iii) at a moderate gap $\beta^2 = 0.5$ the unmarked model plateaus at error $\sim 0.32$ while the marked model reaches error $< 0.1$ by $N \approx 120$; (iv) a mark-informativeness ablation confirms the failure-mode corollary --- as the mark distributions merge, $z$-label classification accuracy decays smoothly from $98\%$ to chance.
+\citet{agarwal2024system2} propose a two-timescale Hawkes process to disentangle impulsive (System-1) from deliberate (System-2) user behaviour purely from arrival times, separating the two components via the decay-rate inequality $\beta^1 > \beta^2$. Their own Theorem~1 makes the condition strict: when the decay rates collide, the model is provably non-identifiable. We extend their setup to a \emph{marked} dual-kernel Hawkes in which each arrival carries a mixed-type engagement vector (session event count, dwell time, like indicator), and prove that the marked model is identifiable whenever \emph{either} the decay rates differ \emph{or} the mark distributions differ --- a strictly weaker sufficient condition. Consistency of the MLE follows by a standard M-estimation argument. We implement the model with branching-EM and run four synthetic experiments: (i) every parameter's MLE error decays toward zero with $N$, consistent with $1/\sqrt{N}$ scaling; (ii) the flagship $\beta$-sweep shows the marked model's error stays low as $\beta^2 \to \beta^1$ while the unmarked model's error climbs to $0.31$ (a $5.2\times$ gap at $\beta^2 = \beta^1$); (iii) at a moderate gap $\beta^2 = 0.5$ the unmarked model plateaus at error $\sim 0.22$--$0.26$ while the marked model reaches error $< 0.1$ by $N \approx 120$; (iv) a mark-informativeness ablation confirms the failure-mode corollary --- as the mark distributions merge, $z$-label classification accuracy decays from $98.1\%$ at full separation toward chance at $s=0$.
 \end{abstract}
 
 % -----------------------------------------------------------------------------
@@ -102,7 +102,7 @@ We extend (\ref{eq:paper-intensity}) with three additions: two separate base rat
 \begin{equation*}
 y_k = (L_k, D_k, C_k), \quad L_k \sim \NegBin(\lambda_j, r_j), \; D_k \sim \LogNormal(m_j, \sigma_j^2), \; C_k \sim \Bernoulli(p_j),
 \end{equation*}
-representing session event count, dwell time, and a binary like/share indicator. Each factor is identifiable \citep{teicher1963finite}, so the product family is.
+representing session event count, dwell time, and a binary like/share indicator. We use the NB2 parameterisation: $\NegBin(\lambda_j, r_j)$ denotes mean $\lambda_j$ and dispersion $r_j$ (variance $= \lambda_j + \lambda_j^2/r_j$). Each factor is identifiable \citep{teicher1963finite}, so the product family is.
 
 \paragraph{Stability and label-switching.} We impose $\alpha^1 + \alpha^2 < 1$ (stationarity), and anchor labels by $\beta^1 > \beta^2$ or a mark-mean ordering $m_1 < m_2$ when decays coincide. The full parameter vector is
 \[
@@ -128,6 +128,9 @@ Under Assumptions~\ref{a:positive}--\ref{a:nondeg}, the parameter $\theta$ is id
 \begin{corollary}[MLE consistency]\label{cor:consistency}
 Let $\hat\theta_T$ denote the MLE of $\theta$ over a compact parameter space $\Theta$ satisfying Assumptions~\ref{a:positive}--\ref{a:nondeg}, computed from observations on $[0, T]$. Then $\hat\theta_T \xrightarrow{\;\PP\;} \theta^\star$ as $T \to \infty$, where $\theta^\star$ is the true parameter.
 \end{corollary}
+\begin{remark}
+The consistency argument follows the pattern of \citet{gao2018consistency} for the unmarked case: ergodicity of the stationary marked Hawkes process ensures uniform convergence of $T^{-1}\ell_T$ to a population criterion, and identifiability (Theorem~\ref{thm:id}) guarantees the population criterion is uniquely maximised at $\theta^\star$. The extension of the ergodicity result from unmarked to marked processes is expected to follow from the standard marked-TPP martingale framework but is not explicitly proved in \citet{gao2018consistency}; we treat it as an assumption.
+\end{remark}
 
 \begin{corollary}[Failure modes]\label{cor:failure}
 Identifiability fails in exactly three regimes:
@@ -184,7 +187,7 @@ We sweep horizon $T \in \{200, 400, 800, 1500, 3000, 6000\}$ (expected $N$ from 
 \begin{figure}[t]
 \centering
 \includegraphics[width=0.65\linewidth]{../figures/exp1_consistency.png}
-\caption{\textbf{Experiment 1 (consistency).} L2 error vs $N$ on log-log axes. Every parameter family --- $\mu$, $\alpha$, $\beta$, LogNormal mean, Bernoulli $p$, NegBin mean --- decays monotonically to zero. Shrinkage factors small-$T$ to large-$T$: $\mu$ $8.4\times$, $\alpha$ $10.3\times$, $\beta$ $9.0\times$, LogNormal $\mu$ $32.6\times$, Bernoulli $p$ $21.2\times$, NegBin mean $10.7\times$. Empirically confirms Corollary~\ref{cor:consistency} across all six parameter types.}
+\caption{\textbf{Experiment 1 (consistency).} L2 error vs $N$ on log-log axes. Every parameter family --- $\mu$, $\alpha$, $\beta$, LogNormal mean, Bernoulli $p$, NegBin mean --- shows an overall downward trend consistent with MLE consistency. Due to the small number of seeds ($n=4$), point-by-point monotonicity is not guaranteed; the general shrinkage from small-$T$ to large-$T$ is: $\mu$ $8.4\times$, $\alpha$ $10.3\times$, $\beta$ $9.0\times$, LogNormal $\mu$ $32.6\times$, Bernoulli $p$ $21.2\times$, NegBin mean $10.7\times$. Empirically supports Corollary~\ref{cor:consistency} across all six parameter types.}
 \label{fig:exp1}
 \end{figure}
 
@@ -194,7 +197,7 @@ The project's headline experiment. We fix $\beta^1 = 1.0$ and sweep $\beta^2 \in
 \begin{figure}[t]
 \centering
 \includegraphics[width=0.72\linewidth]{../figures/exp2_beta_gap.png}
-\caption{\textbf{Experiment 2 (flagship).} Unmarked model's $\alpha$-error climbs monotonically from $\sim 0.08$ at large $\beta$-gap to $\sim 0.31$ as $\beta^2 \to \beta^1$, exactly the failure predicted by \citet{agarwal2024system2}'s Theorem~1. Marked model's error stays flat at $0.03$--$0.06$ across the entire range. \textbf{At $\beta^2 = 1.0$, the marked model is $5.2\times$ more accurate than the unmarked.}}
+\caption{\textbf{Experiment 2 (flagship).} Unmarked model's $\alpha$-error rises from $\sim 0.06$ at large $\beta$-gap to $\sim 0.31$ as $\beta^2 \to \beta^1$, exhibiting the identifiability degradation predicted by \citet{agarwal2024system2}'s Theorem~1. Marked model's error remains low across the range (mean $0.03$--$0.08$); at large $\beta$-gap ($\beta^2=0.1$) both models perform similarly, but the gap widens as timing degrades. \textbf{At $\beta^2 = 1.0$, the marked model is $5.2\times$ more accurate than the unmarked.}}
 \label{fig:exp2}
 \end{figure}
 
@@ -206,7 +209,7 @@ We fix $\beta^2 = 0.5$ (a ratio of 2 with $\beta^1 = 1.0$; in principle identifi
 \begin{figure}[t]
 \centering
 \includegraphics[width=0.65\linewidth]{../figures/exp3_sample_complexity.png}
-\caption{\textbf{Experiment 3.} Sample complexity at $\beta^2 = 0.5$. Unmarked $\alpha$-error plateaus at $\sim 0.30$--$0.40$ across $N \in [38, 745]$ and does not reach $\alpha$-err $< 0.1$ anywhere in the tested range. Marked $\alpha$-error drops from $0.25$ at $N \approx 40$ to $0.03$ at $N \approx 800$.}
+\caption{\textbf{Experiment 3.} Sample complexity at $\beta^2 = 0.5$. Unmarked $\alpha$-error remains elevated at $\sim 0.20$--$0.26$ across mean $N \in [38, 768]$ and does not reach $\alpha$-err $< 0.1$ anywhere in the tested range. Marked $\alpha$-error drops from $0.20$ at $N \approx 40$ to $0.04$ at $N \approx 800$, crossing below $0.1$ at $N \approx 120$.}
 \label{fig:exp3}
 \end{figure}
 
@@ -222,7 +225,8 @@ where $F_j^{\mathrm{anchor}}$ is the full-separation distribution and $F_{\mathr
 \begin{figure}[t]
 \centering
 \includegraphics[width=\linewidth]{../figures/exp4_mark_informativeness.png}
-\caption{\textbf{Experiment 4.} At $\beta$-collapse. \emph{Left:} $\alpha$-error for marked vs unmarked as marks become informative. The unmarked model is flat at $\sim 0.32$ everywhere (it doesn't use marks, and $\beta$-collapse blocks timing). \emph{Right:} $z$-label classification accuracy for the marked model. Rises smoothly from $52.6\%$ (chance) at $s=0$ to $98.1\%$ at $s=1$ --- a clean experimental content for Corollary~\ref{cor:failure}.}
+\caption{\textbf{Experiment 4.} At $\beta$-collapse. \emph{Left:} $\alpha$-error for marked vs unmarked as marks become informative. The unmarked model hovers at $\sim 0.20$--$0.32$ everywhere (it doesn't use marks, and $\beta$-collapse blocks timing). \emph{Right:} $z$-label classification accuracy for the marked model. Rises from near-chance ($54.7\%$) at $s=0$ to $98.1\%$ at $s=1$ --- a clean experimental confirmation of Corollary~\ref{cor:failure}. (Theoretical chance is $50\%$; the small positive offset at $s=0$ is sampling noise.)}
+
 \label{fig:exp4}
 \end{figure}
 
@@ -241,7 +245,7 @@ Experiment & Claim & Evidence \\
 Exp 1 & MLE consistency for the marked model & All parameter errors decay to zero \\
 Exp 2 & Marks rescue identifiability at $\beta$-collapse & $5.2\times$ gap at $\beta^1 = \beta^2$ \\
 Exp 3 & Marks dominate sample complexity at moderate $\beta$-gap & Unmarked plateaus; marked $<0.1$ by $N\approx 120$ \\
-Exp 4 & Marks need separation (Corollary F1) & $z$-acc ramps from $52.6\%$ to $98.1\%$ \\
+Exp 4 & Marks need separation (Corollary F1) & $z$-acc ramps from $\sim 55\%$ (chance) to $98.1\%$ \\
 \bottomrule
 \end{tabular}
 \end{center}
@@ -252,6 +256,9 @@ Exp 4 & Marks need separation (Corollary F1) & $z$-acc ramps from $52.6\%$ to $9
 
 \paragraph{Why the extension is tight.}
 Theorem~\ref{thm:id} is a \emph{disjunctive} sufficient condition: identifiability holds whenever at least one of the timing and mark channels carries signal. Corollary~\ref{cor:failure}~(F1) is the exact contrapositive --- both channels must fail. This two-channel structure mirrors how recommender signals work in practice: timing is an abundant but noisy signal; marks are a sparse but precise signal. Using both makes the inference robust to whichever channel happens to be weak in any given regime.
+
+\paragraph{When do marks help vs.\ hurt?}
+The identifiability theorem guarantees that adding marks never \emph{loses} information. However, in finite samples, the marked model carries more parameters and EM has a harder optimisation landscape. Experiment~2 shows this directly: at large $\beta$-gap ($\beta^2 = 0.1$) where timing alone almost uniquely identifies the components, the marked model's mean $\alpha$-error ($0.08$) is slightly \emph{higher} than the unmarked model's ($0.06$). Marks provide their greatest benefit when the timing channel is degraded ($\beta^2 \approx \beta^1$), where the finite-sample cost of extra parameters is offset by the identifiability gain. At large gap, the models are asymptotically equivalent and the difference is pure estimation variance.
 
 \paragraph{Why synthetic-only is the right scope.}
 The contribution is an identifiability theorem. Testing it requires that ground-truth labels be known, which is definitionally unavailable on a real platform. A real-data experiment could test predictive likelihood or return-time MAE --- both legitimate, neither pertaining to the theorem's claim. Synthetic data with known $z_k$ is the right venue for the question.
@@ -295,12 +302,16 @@ q_{\mathrm{long}}(y) \;=\; \frac{\mu_1}{\mu_1+\mu_2} F_1(y; \theta_1) \;+\; \fra
 Assumption~\ref{a:marks} implies (\ref{eq:qlong}) uniquely determines $(F_1, F_2)$ up to label permutation, together with $\mu_1/(\mu_1+\mu_2)$. Assumption~\ref{a:label} fixes the permutation. Combined with $\mu = \mu_1+\mu_2$ from Step~1, we obtain $\mu_1, \mu_2$ individually.
 
 \paragraph{Step 3: short-burst marks identify \boldmath{$\alpha^1, \alpha^2$} individually (Case (b)).}
-Along burst subsequences with $t_{k_n} - t_{k_n-1} \to 0$, the kernel contribution dominates, and the conditional label probability tends to $\alpha^j/(\alpha^1+\alpha^2)$. The marginal mark distribution is
+Consider subsequences with $t_{k_n} - t_{k_n-1} \to 0$ (events arriving during a burst). Along these, the kernel contribution dominates the base rate and, crucially, when $\beta^1 = \beta^2 \equiv \beta$ both kernels share the same exponential decay. Consequently the ratio of component-$j$ contributions is exactly $\alpha^j/(\alpha^1+\alpha^2)$, independently of the full history. Since the base rate becomes negligible relative to the kernel contribution as the gap shrinks, the conditional probability $\PP(z_{k_n} = j \mid \mathcal{H}_{t_{k_n}})$ converges to $\alpha^j/(\alpha^1+\alpha^2)$. (Such short-gap events exist a.s.\ in the stationary process because $\mu > 0$.) The marginal mark distribution along this subsequence is therefore
 \begin{equation}
 q_{\mathrm{short}}(y) \;=\; \frac{\alpha^1}{\alpha^1+\alpha^2} F_1(y; \theta_1) \;+\; \frac{\alpha^2}{\alpha^1+\alpha^2} F_2(y; \theta_2). \label{eq:qshort}
 \end{equation}
-With $F_1, F_2$ already known from Step~2, Assumption~\ref{a:marks} applied to (\ref{eq:qshort}) identifies $\alpha^1/(\alpha^1+\alpha^2)$. Combined with Step~1, we recover $\alpha^1, \alpha^2$ individually.
+With $F_1, F_2$ already known from Step~2, Assumption~\ref{a:marks} applied to (\ref{eq:qshort}) identifies $\alpha^1/(\alpha^1+\alpha^2)$. Combined with $\alpha^1+\alpha^2$ from Step~1, we recover $\alpha^1, \alpha^2$ individually.
 
-Assumption~\ref{a:nondeg} ensures $q_{\mathrm{short}} \ne q_{\mathrm{long}}$ in Case (b), so that Steps~2 and~3 give genuinely independent equations. Taken together, Steps~1--3 identify every coordinate of $\theta$. \qed
+\begin{remark}
+The argument above establishes that $q_{\mathrm{short}}$ is a well-defined feature of the stationary distribution (determined by the limiting label probabilities along short-gap events) and that mixture identifiability (Assumption~\ref{a:marks}) applies to it once $F_1,F_2$ are known. A fully measure-theoretic treatment would invoke the ergodic theorem conditional on the inter-arrival gap falling below $\varepsilon$, and then pass $\varepsilon \to 0$; we omit that calculation here.
+\end{remark}
+
+Assumption~\ref{a:nondeg} ensures $q_{\mathrm{short}} \ne q_{\mathrm{long}}$ in Case (b), so that Steps~2 and~3 yield genuinely independent equations. Taken together, Steps~1--3 identify every coordinate of $\theta$. \qed
 
 \end{document}

@@ -33,7 +33,7 @@ $$
 y_k \mid z_k = j \;\sim\; F_j(\,\cdot\,; \theta_j), \qquad j \in \{1, 2\}. \tag{3}
 $$
 
-A concrete instantiation used in the experiments is a mixed-type product $F_j = \mathrm{NegBin}(\lambda_j, r_j) \times \mathrm{LogNormal}(m_j, \sigma_j^2) \times \mathrm{Bernoulli}(p_j)$, representing session event count, dwell time, and binary like/share indicator respectively. Each factor is an identifiable parametric family (Teicher 1963), so product mixtures of $F_1, F_2$ are identifiable.
+A concrete instantiation used in the experiments is a mixed-type product $F_j = \mathrm{NegBin}(\lambda_j, r_j) \times \mathrm{LogNormal}(m_j, \sigma_j^2) \times \mathrm{Bernoulli}(p_j)$, representing session event count, dwell time, and binary like/share indicator respectively. We use the NB2 parameterisation: $\mathrm{NegBin}(\lambda_j, r_j)$ denotes mean $\lambda_j$ and dispersion $r_j$ (variance $= \lambda_j + \lambda_j^2/r_j$). Each factor is an identifiable parametric family (Teicher 1963), so product mixtures of $F_1, F_2$ are identifiable.
 
 The full parameter vector is
 
@@ -87,13 +87,15 @@ Since (A4) guarantees that finite mixtures of the $F_j$-family are identifiable,
 
 **Step 3 — marks also identify $\alpha^1, \alpha^2$ individually (needed only in Case (b)).**
 
-Consider the complementary subsequence of events that arrive *during* a burst — formally, sequences with $t_{k_n} - t_{k_n-1} \to 0$ where many recent events are still exciting. Along these, the kernel contribution $\kappa \ast dN(t_{k_n})$ dominates, so $\lambda(t_{k_n}^-) \approx \kappa \ast dN(t_{k_n})$. The conditional probability that $z_{k_n} = j$ is proportional to the component-$j$ kernel contribution, which along this subsequence tends to $\alpha^j/(\alpha^1+\alpha^2)$. Hence the marginal mark distribution along the burst subsequence is
+Consider events that arrive during a burst — formally, subsequences with $t_{k_n} - t_{k_n-1} \to 0$. Along these, the kernel contribution $\kappa \ast dN(t_{k_n})$ dominates the base rate, so $\lambda(t_{k_n}^-) \approx \kappa \ast dN(t_{k_n})$. Crucially, when $\beta^1 = \beta^2 \equiv \beta$, both kernels share the same exponential decay; the ratio of component-$j$ contributions is exactly $\alpha^j/(\alpha^1+\alpha^2)$ regardless of the full history. As the inter-arrival gap shrinks to zero, the base rate becomes negligible relative to the kernel contribution, so $\mathbb{P}(z_{k_n} = j \mid \mathcal{H}_{t_{k_n}}) \to \alpha^j/(\alpha^1+\alpha^2)$. (Such events exist a.s.\ in the stationary process because $\mu > 0$.) The marginal mark distribution along the burst subsequence is therefore
 
 $$
 q_{\mathrm{short}}(y) \;=\; \frac{\alpha^1}{\alpha^1+\alpha^2} F_1(y; \theta_1) \;+\; \frac{\alpha^2}{\alpha^1+\alpha^2} F_2(y; \theta_2). \tag{5}
 $$
 
 By (A4) applied to (5) — with $F_1, F_2$ already known from Step 2 — the weight $\alpha^1/(\alpha^1+\alpha^2)$ is identified. Combined with Step 1 ($\alpha^1 + \alpha^2$ known), we recover $\alpha^1$ and $\alpha^2$ individually.
+
+> **Remark on rigour.** The argument above establishes that $q_{\mathrm{short}}$ is a well-defined feature of the stationary distribution (the limiting label probability along short-gap events) and that mixture identifiability (A4) applies once $F_1, F_2$ are known. A fully measure-theoretic treatment would invoke the ergodic theorem conditioned on the inter-arrival gap falling below $\varepsilon$ and then pass $\varepsilon \to 0$; we omit that calculation here.
 
 The non-degeneracy assumption (A5) is exactly what ensures that $q_{\mathrm{short}} \ne q_{\mathrm{long}}$ in Case (b), so that Steps 2 and 3 give genuinely different equations to solve. If $\alpha^1/(\alpha^1+\alpha^2) = \mu_1/(\mu_1+\mu_2)$ and $\beta^1 = \beta^2$, the two equations coincide and the individual $\alpha^j$ cannot be separated.
 
@@ -113,7 +115,7 @@ $$
 \ell_T(\theta) = \sum_{k: t_k \le T} \log\Big[\!\sum_{\text{source}} w_{\mathrm{source}}(t_k; \theta) \, f_{\mathrm{source}}(y_k; \theta)\Big] - \int_0^T \lambda(t; \theta) \, dt
 $$
 
-is a continuous function of $\theta \in \Theta$ (compactness). By ergodicity of the marked Hawkes (Guo et al. 2018, extended to marks via the marked-TPP martingale framework), $T^{-1} \ell_T(\theta) \to \ell_\infty(\theta)$ almost surely, uniformly on $\Theta$. The population log-likelihood $\ell_\infty$ is maximised uniquely at $\theta^\star$ by Theorem 1 (identifiability) and standard M-estimation arguments (van der Vaart 1998, Theorem 5.7) deliver consistency of the M-estimator $\hat\theta_T$. $\square$
+is a continuous function of $\theta \in \Theta$ (compactness). Gao et al. (2018) establish ergodicity and uniform convergence $T^{-1}\ell_T(\theta) \to \ell_\infty(\theta)$ for the *unmarked* Hawkes; the extension to marks is expected to follow from the standard marked-TPP martingale framework but is not explicitly proved there — we treat this as an assumption. Accepting that extension, the population log-likelihood $\ell_\infty$ is maximised uniquely at $\theta^\star$ by Theorem 1 (identifiability) and standard M-estimation arguments (van der Vaart 1998, Theorem 5.7) deliver consistency of $\hat\theta_T$. $\square$
 
 ## 5 Failure modes
 

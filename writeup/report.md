@@ -7,7 +7,7 @@ with identifiability that survives decay-rate collapse*
 
 ## Abstract
 
-Agarwal et al. (2024) propose a two-timescale Hawkes process to disentangle impulsive (System-1) from deliberate (System-2) user behaviour purely from arrival times, separating the two components via the decay-rate inequality $\beta^1 > \beta^2$. Their own Theorem 1 makes the condition strict: when the decay rates collide, the model is provably non-identifiable. We extend their setup to a *marked* dual-kernel Hawkes where each arrival carries a mixed-type engagement vector (session event count, dwell time, like indicator), and prove that the marked model is identifiable whenever *either* the decay rates differ *or* the mark distributions differ — a strictly weaker sufficient condition. Consistency of the MLE follows by a standard M-estimation argument. We implement the model with branching-EM and run four synthetic experiments: (i) every parameter's MLE error decays as $1/\sqrt{N}$; (ii) the flagship β-sweep shows the marked model's error stays flat as $\beta^2 \to \beta^1$ while the unmarked model's error climbs to $0.31$ (a 5.2× gap at $\beta^2 = \beta^1$); (iii) at a moderate gap $\beta^2 = 0.5$ the unmarked model plateaus at error ~0.32 while the marked model reaches error < 0.1 by $N \approx 120$; (iv) a mark-informativeness ablation confirms the failure-mode corollary — as the mark distributions merge, z-label classification accuracy decays smoothly from 98% to chance.
+Agarwal et al. (2024) propose a two-timescale Hawkes process to disentangle impulsive (System-1) from deliberate (System-2) user behaviour purely from arrival times, separating the two components via the decay-rate inequality $\beta^1 > \beta^2$. Their own Theorem 1 makes the condition strict: when the decay rates collide, the model is provably non-identifiable. We extend their setup to a *marked* dual-kernel Hawkes where each arrival carries a mixed-type engagement vector (session event count, dwell time, like indicator), and prove that the marked model is identifiable whenever *either* the decay rates differ *or* the mark distributions differ — a strictly weaker sufficient condition. Consistency of the MLE follows by a standard M-estimation argument. We implement the model with branching-EM and run four synthetic experiments: (i) every parameter's MLE error decays toward zero with $N$, consistent with $1/\sqrt{N}$ scaling; (ii) the flagship β-sweep shows the marked model's error stays low as $\beta^2 \to \beta^1$ while the unmarked model's error climbs to $0.31$ (a 5.2× gap at $\beta^2 = \beta^1$); (iii) at a moderate gap $\beta^2 = 0.5$ the unmarked model plateaus at error ~0.22–0.26 while the marked model reaches error < 0.1 by $N \approx 120$; (iv) a mark-informativeness ablation confirms the failure-mode corollary — as the mark distributions merge, z-label classification accuracy decays from 98.1% at full separation toward chance at $s=0$.
 
 ---
 
@@ -111,7 +111,7 @@ Together, Steps 1–3 pin down every coordinate of $\theta$. See `writeup/theore
 
 **Corollary 1.** *The MLE $\hat\theta_T$ computed from observations on $[0, T]$ is consistent: $\hat\theta_T \xrightarrow{\mathbb{P}} \theta^\star$ as $T \to \infty$.*
 
-This follows from Theorem 1, continuity of the marked log-likelihood, and the Gao et al. (2018) ergodicity result applied through the marked-TPP martingale framework.
+This follows from Theorem 1, continuity of the marked log-likelihood, and the Gao et al. (2018) ergodicity result. Gao et al. (2018) establish the result for the unmarked case; the extension to marks is expected to follow from the marked-TPP martingale framework but is not explicitly proved there — we treat this as an assumption.
 
 ### 4.3 Failure modes
 
@@ -175,7 +175,7 @@ with mark parameters $F_1 = \mathrm{NegBin}(3, 5) \times \mathrm{LogNormal}(0, 0
 We sweep the observation horizon $T \in \{200, 400, 800, 1500, 3000, 6000\}$, yielding expected event counts $N$ from ~40 to ~1800, and plot the L2 parameter error for every parameter family on log-log axes (Figure 1).
 
 ![Experiment 1](../figures/exp1_consistency.png)
-*Figure 1: L2 error vs sample size $N$ on log-log axes. Every parameter family (μ, α, β, LogNormal mean, Bernoulli p, NegBin mean) shows monotone decay. Shrinkage factors small-T to large-T: μ 8.4×, α 10.3×, β 9.0×, LogNormal μ 32.6×, Bernoulli p 21.2×, NegBin mean 10.7×.*
+*Figure 1: L2 error vs sample size $N$ on log-log axes. Every parameter family (μ, α, β, LogNormal mean, Bernoulli p, NegBin mean) shows an overall downward trend consistent with MLE consistency. Due to small seed count (n=4), point-by-point monotonicity is not guaranteed; overall shrinkage from small-T to large-T: μ 8.4×, α 10.3×, β 9.0×, LogNormal μ 32.6×, Bernoulli p 21.2×, NegBin mean 10.7×.*
 
 This empirically confirms Corollary 1 across all six parameter types simultaneously.
 
@@ -184,7 +184,7 @@ This empirically confirms Corollary 1 across all six parameter types simultaneou
 The project's headline experiment. We fix $\beta^1 = 1.0$ and sweep $\beta^2 \in \{0.1, 0.2, 0.4, 0.6, 0.8, 0.9, 0.95, 1.0\}$, four seeds each. At every setting we fit both the unmarked paper-style baseline (i.e. our EM with `use_marks=False`) and the full marked model, and record the L2 error on $(\alpha^1, \alpha^2)$ (Figure 2).
 
 ![Experiment 2](../figures/exp2_beta_gap.png)
-*Figure 2: Flagship. Unmarked model's α-error climbs monotonically from ~0.08 at large β-gap to ~0.31 as $\beta^2 \to \beta^1$, exactly the failure predicted by the paper's Theorem 1. Marked model's error stays flat at 0.03–0.06 across the entire range. **At $\beta^2 = 1.0$, the marked model is 5.2× more accurate than the unmarked.***
+*Figure 2: Flagship. Unmarked model's α-error rises from ~0.06 at large β-gap to ~0.31 as $\beta^2 \to \beta^1$, exhibiting the identifiability degradation predicted by the paper's Theorem 1. Marked model's error remains low across the range (mean 0.03–0.08); at large β-gap both models perform similarly, but the advantage of marks grows as timing degrades. **At $\beta^2 = 1.0$, the marked model is 5.2× more accurate than the unmarked.***
 
 This figure is the whole thesis of the project condensed into a single plot: the marked model succeeds exactly where the unmarked breaks.
 
@@ -193,7 +193,7 @@ This figure is the whole thesis of the project condensed into a single plot: the
 We fix $\beta^2 = 0.5$ (a ratio of 2 with $\beta^1 = 1.0$, i.e. the unmarked model is in principle identifiable but potentially inefficient) and sweep $T \in \{200, 400, 800, 1500, 3000\}$, five seeds each (Figure 3).
 
 ![Experiment 3](../figures/exp3_sample_complexity.png)
-*Figure 3: Sample complexity at $\beta^2 = 0.5$. Unmarked α-error plateaus at ~0.30–0.40 across $N \in [38, 745]$ and does not reach α-err < 0.1 anywhere in the tested range. Marked α-error drops from 0.25 at $N \approx 40$ to 0.03 at $N \approx 800$.*
+*Figure 3: Sample complexity at $\beta^2 = 0.5$. Unmarked α-error remains elevated at ~0.20–0.26 across mean $N \in [38, 768]$ and does not reach α-err < 0.1 anywhere in the tested range. Marked α-error drops from ~0.20 at $N \approx 40$ to ~0.04 at $N \approx 800$, crossing below 0.1 at $N \approx 120$.*
 
 This is a stronger finding than the proposal predicted. At moderate β-gap, the unmarked model is technically identifiable but so information-inefficient that practical sample sizes yield error comparable to random guessing on $(\alpha^1, \alpha^2)$. Marks aren't merely a nice-to-have — they are *strictly necessary* at realistic sample sizes.
 
@@ -208,7 +208,7 @@ $$
 where $F_j^{\mathrm{anchor}}$ is the full-separation distribution (from §6.1) and $F_{\mathrm{mid}}$ is the shared midpoint (Figure 4).
 
 ![Experiment 4](../figures/exp4_mark_informativeness.png)
-*Figure 4: At β-collapse. **Left:** α-error for marked vs unmarked as marks become informative. The unmarked model is flat at ~0.32 everywhere (it doesn't use marks, and β-collapse blocks timing). **Right:** z-label classification accuracy for the marked model. Rises smoothly from 52.6% (chance) at $s=0$ to 98.1% at $s=1$ — a clean experimental content for the failure-mode corollary.*
+*Figure 4: At β-collapse. **Left:** α-error for marked vs unmarked as marks become informative. The unmarked model hovers at ~0.20–0.32 everywhere (it doesn't use marks, and β-collapse blocks timing). **Right:** z-label classification accuracy for the marked model. Rises from near-chance (54.7%, vs. theoretical 50%) at $s=0$ to 98.1% at $s=1$ — a clean experimental confirmation of the failure-mode corollary. (Small positive offset at $s=0$ is sampling noise with 4 seeds.)*
 
 The right panel is the definitive test of Corollary 2: at $s = 0$ both channels carry zero disentangling signal and the model is indistinguishable from random, exactly as (F1) predicts; as $s$ grows the mark channel carries progressively more signal and the model recovers the latent labels.
 
@@ -220,14 +220,16 @@ An observation worth flagging: the α-error metric on its own (left panel) is mi
 |---|---|---|
 | 1 | MLE consistency for the marked model | Every parameter's L2 error decays to zero with N |
 | 2 | Marks rescue identifiability at β-collapse | 5.2× gap at $\beta^2 = \beta^1 = 1$; marked stays flat, unmarked degrades |
-| 3 | Marks dominate sample complexity even at moderate β-gap | Unmarked plateaus at ~0.32; marked < 0.1 by $N \approx 120$ |
-| 4 | Marks aren't magic — they need separation (Failure mode F1) | z-accuracy ramps from 52.6% to 98.1% with informativeness $s$ |
+| 3 | Marks dominate sample complexity even at moderate β-gap | Unmarked stays elevated at ~0.20–0.26; marked < 0.1 by $N \approx 120$ |
+| 4 | Marks aren't magic — they need separation (Failure mode F1) | z-accuracy ramps from ~55% (near chance) to 98.1% with informativeness $s$ |
 
 ---
 
 ## 7 Discussion
 
 **Why the extension is tight.** Theorem 1 is a *disjunctive* sufficient condition: identifiability holds whenever at least one of the timing and mark channels carries signal. The failure-mode corollary (F1) is the exact contrapositive — both channels must fail. This two-channel structure mirrors how recommender systems actually work in practice: timing is an abundant but noisy signal; marks are a sparse but precise signal. Using both makes the inference robust to whichever channel happens to be weak in any given regime.
+
+**When do marks help vs. hurt?** The identifiability theorem guarantees marks never *lose* information. However, in finite samples, the marked model carries more parameters and EM faces a harder optimisation landscape. Experiment 2 illustrates this: at large β-gap (β₂ = 0.1) where timing alone nearly identifies the components, the marked model's mean α-error (0.082) is slightly *higher* than the unmarked model's (0.061). Marks provide their greatest benefit when the timing channel is degraded (β₂ ≈ β₁), where the identifiability gain outweighs the finite-sample cost of extra parameters.
 
 **Why synthetic-only is the right scope.** The contribution is an identifiability theorem. Testing it requires that ground-truth labels be known, which is definitionally unavailable on a real platform. A real-data experiment could test predictive likelihood or return-time MAE — both legitimate, neither pertaining to the theorem's claim. Synthetic data with known $z_k$ is the right venue for the question, and extending the method to real logs would be a separate project aimed at a separate (engineering) question.
 
