@@ -32,7 +32,7 @@
 \maketitle
 
 \begin{abstract}
-This document isolates the \emph{core idea} of the project: the marked dual-kernel Hawkes process, its notation, and the synthetic experimental protocol used to test it. The aim is clarity, not completeness --- every symbol is defined, every parameter is accounted for, and each of the four experiments is described in one short paragraph.
+This document isolates the \emph{core idea} of the project: the marked dual-kernel Hawkes process, its notation, and the synthetic experimental protocol used to test it. The aim is clarity, not completeness --- every symbol is defined, every parameter is accounted for, and each of the five experiments is described in one short paragraph.
 \end{abstract}
 
 % =============================================================================
@@ -44,7 +44,7 @@ Agarwal et al.~(2024, System-2 Recommenders) model a user's return dynamics as a
 If each arrival also carries an engagement mark (dwell time, click count, like indicator), then the two components are identifiable even when the decay rates coincide, as long as the marks differ. Timing and marks act as two \emph{independent} identifiability channels; either one alone is sufficient.
 \end{claim}
 
-The rest of this document formalises that claim (\S\ref{sec:model}), describes the inference algorithm used to check it (\S\ref{sec:inference}), and outlines the four synthetic experiments (\S\ref{sec:experiments}) that test it.
+The rest of this document formalises that claim (\S\ref{sec:model}), describes the inference algorithm used to check it (\S\ref{sec:inference}), and outlines the five synthetic experiments (\S\ref{sec:experiments}) that test it.
 
 % =============================================================================
 \section{The model}
@@ -242,7 +242,11 @@ The decay-rate ratio is fixed at $\beta^1/\beta^2 = 2$, a regime where the unmar
 
 Decay rates are set equal, $\beta^1 = \beta^2 = 1$, putting the timing channel into the paper's failure regime. A scalar $s \in [0, 1]$ then interpolates the mark distributions between fully merged ($s = 0$, marks carry no information) and fully separated ($s = 1$, the default ground-truth marks). Multi-restart EM is fit at each $s$. The experiment produces two panels (parameter error and $z$-accuracy against $s$) and is the direct test of the failure-mode corollary: we expect both metrics to be at chance when $s = 0$ and to ramp smoothly upward as $s$ grows.
 
-\subsection{What the four experiments jointly establish}
+\subsection{Experiment 5 --- Held-out forecasting}
+
+The first four experiments measure parameter recovery on the same data the model was trained on. Experiment 5 checks whether better recovery translates into better predictions on a held-out segment --- the canonical test for any generative time-series model. A long sequence ($T = 2000$) is split into a training prefix ($70\%$) and a test suffix ($30\%$). Three models are fit on the train segment: marked Hawkes (ours), unmarked Hawkes paired with a single pooled i.i.d.\ mark distribution, and a homogeneous Poisson + i.i.d.\ marks baseline. On the test segment we report joint predictive log-likelihood per event, time-rescaling KS distance to $U[0,1]$ (calibration), and held-out $z$-classification accuracy. The experiment runs in two regimes: easy ($\beta^1 \neq \beta^2$, both channels live) and hard ($\beta^1 = \beta^2$, timing channel collapsed). It is designed to verify that the in-sample advantage we measure in Experiments 2--4 carries over to genuine out-of-sample prediction.
+
+\subsection{What the five experiments jointly establish}
 
 \begin{center}
 \begin{tabular}{@{}p{3.3cm}p{4.5cm}p{6cm}@{}}
@@ -253,6 +257,7 @@ Exp 1. Consistency               & MLE consistency (Corollary 1)          & The 
 Exp 2. $\beta$-sweep (headline) & Marks rescue $\beta$-collapse             & Marks make the theorem strictly stronger than the paper's. \\
 Exp 3. Sample complexity         & Marks also help at finite $N$         & The advantage holds in realistic regimes, not just asymptotically. \\
 Exp 4. Informativeness ablation  & Failure mode (F1)                      & Marks aren't magic — both channels can't fail simultaneously. \\
+Exp 5. Held-out forecasting      & In-sample $\Rightarrow$ out-of-sample  & Better recovery means better predictions on data the model never saw. \\
 \bottomrule
 \end{tabular}
 \end{center}
@@ -269,7 +274,7 @@ The whole pipeline is light. Synthetic generation, branching-EM fitting, and plo
 \item \textbf{Model:} dual-kernel Hawkes with per-event marks drawn from a system-specific product distribution (NegBin $\times$ LogNormal $\times$ Bernoulli).
 \item \textbf{Theorem:} identifiable iff at least one of (decay gap, mark separation) is non-trivial. Strictly generalises the paper's identifiability result.
 \item \textbf{Inference:} branching-EM with closed-form E- and M-steps.
-\item \textbf{Experiments:} four synthetic sweeps, each isolating one claim. Flagship result: $5.2\times$ lower error than the paper's unmarked baseline at $\beta^1 = \beta^2 = 1$.
+\item \textbf{Experiments:} five synthetic sweeps. Flagship result: $5.2\times$ lower error than the paper's unmarked baseline at $\beta^1 = \beta^2 = 1$. Held-out predictive log-likelihood gain $\sim 0.6$ nats/event over the unmarked-+-iid-marks baseline.
 \end{itemize}
 
 \end{document}

@@ -7,7 +7,7 @@ with identifiability that survives decay-rate collapse*
 
 ## Abstract
 
-Agarwal et al. (2024) propose a two-timescale Hawkes process to disentangle impulsive (System-1) from deliberate (System-2) user behaviour purely from arrival times, separating the two components via the decay-rate inequality $\beta^1 > \beta^2$. Their own Theorem 1 makes the condition strict: when the decay rates collide, the model is provably non-identifiable. We extend their setup to a *marked* dual-kernel Hawkes where each arrival carries a mixed-type engagement vector (session event count, dwell time, like indicator), and prove that the marked model is identifiable whenever *either* the decay rates differ *or* the mark distributions differ — a strictly weaker sufficient condition. Consistency of the MLE follows by a standard M-estimation argument. We implement the model with branching-EM and run four synthetic experiments: (i) every parameter's MLE error decays toward zero with $N$, consistent with $1/\sqrt{N}$ scaling; (ii) the flagship β-sweep shows the marked model's error stays low as $\beta^2 \to \beta^1$ while the unmarked model's error climbs to $0.31$ (a 5.2× gap at $\beta^2 = \beta^1$); (iii) at a moderate gap $\beta^2 = 0.5$ the unmarked model plateaus at error ~0.22–0.26 while the marked model reaches error < 0.1 by $N \approx 120$; (iv) a mark-informativeness ablation confirms the failure-mode corollary — as the mark distributions merge, z-label classification accuracy decays from 98.1% at full separation toward chance at $s=0$.
+Agarwal et al. (2024) propose a two-timescale Hawkes process to disentangle impulsive (System-1) from deliberate (System-2) user behaviour purely from arrival times, separating the two components via the decay-rate inequality $\beta^1 > \beta^2$. Their own Theorem 1 makes the condition strict: when the decay rates collide, the model is provably non-identifiable. We extend their setup to a *marked* dual-kernel Hawkes where each arrival carries a mixed-type engagement vector (session event count, dwell time, like indicator), and prove that the marked model is identifiable whenever *either* the decay rates differ *or* the mark distributions differ — a strictly weaker sufficient condition. Consistency of the MLE follows by a standard M-estimation argument. We implement the model with branching-EM and run five synthetic experiments: (i) every parameter's MLE error decays toward zero with $N$, consistent with $1/\sqrt{N}$ scaling; (ii) the flagship β-sweep shows the marked model's error stays low as $\beta^2 \to \beta^1$ while the unmarked model's error climbs to $0.31$ (a 5.2× gap at $\beta^2 = \beta^1$); (iii) at a moderate gap $\beta^2 = 0.5$ the unmarked model plateaus at error ~0.22–0.26 while the marked model reaches error < 0.1 by $N \approx 120$; (iv) a mark-informativeness ablation confirms the failure-mode corollary — as the mark distributions merge, z-label classification accuracy decays from 98.1% at full separation toward chance at $s=0$; (v) a held-out forecasting experiment shows that better recovery translates into better predictions: marked Hawkes outscores the unmarked-Hawkes-+-iid-marks baseline by ~0.6 nats/event in joint predictive log-likelihood, with held-out z-accuracy of 98% vs 54% (near-chance) in the failure regime.
 
 ---
 
@@ -214,14 +214,32 @@ The right panel is the definitive test of Corollary 2: at $s = 0$ both channels 
 
 An observation worth flagging: the α-error metric on its own (left panel) is misleading at this regime — it can be artificially low when the EM converges to a *symmetric* solution $\hat\alpha^1 \approx \hat\alpha^2 \approx (\alpha^1+\alpha^2)/2$, which the swap-aware L2 error rewards despite actual non-identifiability. The z-accuracy metric catches this failure directly.
 
-### 6.5 Summary of findings
+### 6.5 Experiment 5: held-out forecasting
+
+Experiments 1–4 measure parameter recovery on the same data the model was trained on. Experiment 5 asks whether better recovery translates into better *predictions* on data the model has not seen — the canonical generative-model evaluation.
+
+**Setup.** Simulate a long sequence ($T_{\mathrm{total}} = 2000$), train on the first 70% ($T_{\mathrm{train}} = 1400$), evaluate on the held-out 30%. Three models, all trained on the same training segment:
+
+- **Marked Hawkes (ours).**
+- **Unmarked Hawkes + i.i.d. marks** — the paper's timing-only model paired with a single pooled mark distribution fit on training marks. The natural baseline that still has to predict marks at test time.
+- **Homogeneous Poisson + i.i.d. marks** — constant rate plus the same pooled mark distribution. Sanity-check baseline.
+
+Three metrics on the test segment: per-event joint predictive log-likelihood (higher better), time-rescaling KS distance to U[0,1] for timing calibration (lower better), and held-out z-classification accuracy (higher better). Two regimes: easy ($\beta^1 = 1$, $\beta^2 = 0.1$) and hard ($\beta^1 = \beta^2 = 1$). Four seeds per regime.
+
+![Experiment 5](../figures/exp5_forecasting.png)
+*Figure 5: **Left:** marked Hawkes wins by ~0.6 nats/event in joint predictive log-likelihood, in both regimes; the Poisson baseline trails by a further 0.4–0.8 nats. **Middle:** the two Hawkes models are equally well-calibrated for timing; the Poisson baseline is sharply mis-calibrated. **Right:** held-out z-accuracy. Marked stays at ~98% across regimes; unmarked drops from 61% to 54% (near-chance) at β-collapse.*
+
+Two findings worth flagging. First, the predictive log-likelihood gap is robust across regimes — marks help with the joint distribution even when timing alone is identifiable. Second, marked and unmarked Hawkes are nearly identically calibrated for timing — marks contribute nothing to time-rescaling KS, only to mark prediction and z-classification. This is honest: marks are not a magic bullet, they specifically rescue the system-classification task that timing alone cannot handle when β-rates collide.
+
+### 6.6 Summary of findings
 
 | Experiment | Claim | Evidence |
 |---|---|---|
 | 1 | MLE consistency for the marked model | Every parameter's L2 error decays to zero with N |
 | 2 | Marks rescue identifiability at β-collapse | 5.2× gap at $\beta^2 = \beta^1 = 1$; marked stays flat, unmarked degrades |
 | 3 | Marks dominate sample complexity even at moderate β-gap | Unmarked stays elevated at ~0.20–0.26; marked < 0.1 by $N \approx 120$ |
-| 4 | Marks aren't magic — they need separation (Failure mode F1) | z-accuracy ramps from ~55% (near chance) to 98.1% with informativeness $s$ |
+| 4 | Marks aren't magic — they need separation (Failure mode F1) | z-accuracy ramps from ~55% (near-chance) to 98.1% with informativeness $s$ |
+| 5 | Better recovery ⇒ better held-out predictions | +0.6 nats/event in joint logL; held-out z-accuracy 98% (marked) vs 54% (near-chance, unmarked) at β-collapse |
 
 ---
 

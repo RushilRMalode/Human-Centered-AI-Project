@@ -285,12 +285,23 @@ def fit_em(
 def predict_z_posterior(
     t: np.ndarray, L: np.ndarray, D: np.ndarray, C: np.ndarray,
     params: FittedParams,
+    use_marks: bool = True,
 ) -> np.ndarray:
-    """Return P(z_k = 1 | all data) under the fitted model."""
+    """Return P(z_k = 1 | all data) under the fitted model.
+
+    With ``use_marks=False`` the posterior uses the timing kernels alone
+    (no mark densities), which is the fair z-classifier for a model
+    trained without marks.
+    """
+    N = len(t)
     dt = t[:, None] - t[None, :]
     mask = dt > 0
-    log_f1 = _log_mark(L, D, C, params.mark_1)
-    log_f2 = _log_mark(L, D, C, params.mark_2)
+    if use_marks:
+        log_f1 = _log_mark(L, D, C, params.mark_1)
+        log_f2 = _log_mark(L, D, C, params.mark_2)
+    else:
+        log_f1 = np.zeros(N)
+        log_f2 = np.zeros(N)
     log_K1 = np.where(mask, np.log(max(params.alpha_1 * params.beta_1, 1e-300)) - params.beta_1 * dt, -np.inf)
     log_K2 = np.where(mask, np.log(max(params.alpha_2 * params.beta_2, 1e-300)) - params.beta_2 * dt, -np.inf)
     log_offs_1 = log_K1 + log_f1[:, None]

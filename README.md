@@ -17,21 +17,24 @@ human ai project/
 │   ├── __init__.py
 │   ├── marks.py                    (NegBin × LogNormal × Bernoulli mixed-type marks)
 │   ├── simulate.py                 (Ogata thinning, with ground-truth z labels)
-│   └── em.py                       (branching-EM + multi-restart wrapper)
+│   ├── em.py                       (branching-EM + multi-restart wrapper)
+│   └── forecast.py                 (held-out predictive log-lik, calibration, baselines)
 │
 ├── experiments/                    (all synthetic, fixed seeds)
 │   ├── sanity_check.py             (parameter recovery gate)
-│   ├── stress_beta_collapse.py     (demonstrates Corollary F1)
+│   ├── stress_beta_collapse.py    (demonstrates Corollary F1)
 │   ├── exp1_consistency.py         (N → error, all parameter families)
 │   ├── exp2_beta_gap.py            (flagship: marked vs unmarked over β²)
 │   ├── exp3_sample_complexity.py   (moderate β-gap: marked dominates)
-│   └── exp4_mark_informativeness.py (mark-separation ablation at β-collapse)
+│   ├── exp4_mark_informativeness.py (mark-separation ablation at β-collapse)
+│   └── exp5_forecasting.py         (held-out predictive log-lik, calibration, z-accuracy)
 │
 ├── figures/                        (auto-generated)
 │   ├── exp1_consistency.{png,npz}
 │   ├── exp2_beta_gap.{png,npz}     (headline plot)
 │   ├── exp3_sample_complexity.{png,npz}
-│   └── exp4_mark_informativeness.{png,npz}
+│   ├── exp4_mark_informativeness.{png,npz}
+│   └── exp5_forecasting.{png,npz}
 │
 ├── writeup/                        (markdown)
 │   ├── theorem.md                  (formal proofs; 150 lines)
@@ -67,6 +70,7 @@ python -m experiments.exp1_consistency
 python -m experiments.exp2_beta_gap                 # flagship (~2 min)
 python -m experiments.exp3_sample_complexity
 python -m experiments.exp4_mark_informativeness     # uses multi-restart EM (~20 min)
+python -m experiments.exp5_forecasting              # held-out forecasting (~1 min)
 ```
 
 All scripts write `.png` (figure) and `.npz` (raw numerical results) into `figures/`.
@@ -81,6 +85,7 @@ Expected wall-clock on a laptop: about 30 minutes total, dominated by Exp 4's mu
 | Exp 2 (flagship) | Marks rescue identifiability at $\beta$-collapse | 5.2× improvement at $\beta^2 = \beta^1 = 1$ |
 | Exp 3 | Marks dominate sample complexity at moderate $\beta$-gap | Unmarked plateaus at error ~0.32; marked < 0.1 by $N \approx 120$ |
 | Exp 4 | Marks aren't magic (validates Corollary F1) | $z$-accuracy ramps from 54.7% (chance) at $s=0$ to 98.1% at $s=1$ |
+| Exp 5 | Better recovery $\Rightarrow$ better held-out predictions | Marked beats unmarked-Hawkes-+-iid-marks by $\sim$0.6 nats / event in both regimes; held-out $z$-accuracy 98% (marked) vs 54% (unmarked, basically chance) at $\beta^1 = \beta^2$ |
 
 ## Key files
 
